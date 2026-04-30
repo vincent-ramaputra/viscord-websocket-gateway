@@ -258,7 +258,9 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
 
   @SubscribeMessage(CLIENT_READY_EVENT)
   async handleClientReady(@ConnectedSocket() client: Socket) {
+    console.log("Received client ready")
     const userId = client.handshake.headers['x-user-id'] as string;
+    console.log("userId: ", userId)
 
     try {
       const dmChannelsResponse = await firstValueFrom(this.channelsService.getDmChannels({ userId }));
