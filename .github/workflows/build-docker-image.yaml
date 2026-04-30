@@ -40,9 +40,9 @@ jobs:
           sudo mv kustomize /usr/local/bin/
       - name: Update image tag
         run: |
-          cd infra/k8s/apps/web-client/overlays/dev
+          cd infra/k8s/apps/ws-gateway/overlays/dev
           IMAGE_TAG=${{ steps.meta.outputs.version }}
-          kustomize edit set image vincentramaputra/viscord-web:$IMAGE_TAG
+          kustomize edit set image vincentramaputra/viscord-ws-gateway:$IMAGE_TAG
       - name: Commit and push to infra repo
         run: |
           IMAGE_TAG=${{ steps.meta.outputs.version }}
@@ -50,5 +50,5 @@ jobs:
           git config user.name "ci-bot"
           git config user.email "ci@bot"
           git add .
-          git commit -m "update: updated web-client image tag to $IMAGE_TAG"
+          git commit -m "update: updated ws-gateway image tag to $IMAGE_TAG"
           git push
