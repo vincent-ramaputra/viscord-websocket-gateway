@@ -426,9 +426,14 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
   }
 
   onModuleInit() {
+    console.log("onmoduleinit")
     this.channelsService = this.channelsGRPCClient.getService<ChannelsService>('ChannelsService');
+    console.log("channelservice")
     this.usersService = this.usersGRPCClient.getService<UsersService>('UsersService');
+    console.log("userservice")
     this.relationshipsService = this.relationshipsGRPCClient.getService<RelationshipsService>('RelationshipsService');
+    console.log("relationshipservice")
     this.guildsService = this.guildsGRPCClient.getService<GuildsService>('GuildsService');
+    console.log("guildservice")
   }
 }
