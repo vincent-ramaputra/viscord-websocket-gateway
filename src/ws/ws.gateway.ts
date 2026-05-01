@@ -67,6 +67,8 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
         queueOptions: { durable: true }
       }
     });
+
+    console.log("constructor finished")
   }
 
   async handleConnection(client: Socket) {
