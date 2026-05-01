@@ -49,6 +49,7 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
     @Inject('GUILDS_SERVICE') private guildsGRPCClient: ClientGrpc,
 
   ) {
+    console.log("construct1")
     this.userMQ = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
@@ -57,6 +58,7 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
         queueOptions: { durable: true }
       }
     });
+    console.log("construct2")
     this.channelMQ = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
