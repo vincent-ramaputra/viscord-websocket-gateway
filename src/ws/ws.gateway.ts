@@ -49,7 +49,6 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
     @Inject('GUILDS_SERVICE') private guildsGRPCClient: ClientGrpc,
 
   ) {
-    console.log("construct1")
     this.userMQ = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
@@ -58,7 +57,6 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
         queueOptions: { durable: true }
       }
     });
-    console.log("construct2")
     this.channelMQ = ClientProxyFactory.create({
       transport: Transport.RMQ,
       options: {
@@ -67,28 +65,22 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
         queueOptions: { durable: true }
       }
     });
-
-    console.log("constructor finished")
   }
 
   async handleConnection(client: Socket) {
     const userId: string = client.handshake.headers['x-user-id'] as string;
-    console.log("userId", userId)
     if (!userId) {
       client.disconnect();
       return;
     }
 
-    console.log("1");
     await this.presenceService.setUserPresence(userId);
-    console.log("2");
     await this.connectionsService.addConnection(userId, client.id, this.gatewayNodeId);
-    console.log("3");
     this.userMQ.emit(USER_ONLINE_EVENT, userId);
-    console.log("4");
   }
 
   async handleDisconnect(client: Socket) {
+    console.log("client disconnection")
     const userId: string = client.handshake.headers['x-user-id'] as string;
 
     await this.connectionsService.removeConnection(userId, client.id);
@@ -428,14 +420,9 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
   }
 
   onModuleInit() {
-    console.log("onmoduleinit")
     this.channelsService = this.channelsGRPCClient.getService<ChannelsService>('ChannelsService');
-    console.log("channelservice")
     this.usersService = this.usersGRPCClient.getService<UsersService>('UsersService');
-    console.log("userservice")
     this.relationshipsService = this.relationshipsGRPCClient.getService<RelationshipsService>('RelationshipsService');
-    console.log("relationshipservice")
     this.guildsService = this.guildsGRPCClient.getService<GuildsService>('GuildsService');
-    console.log("guildservice")
   }
 }
