@@ -69,14 +69,19 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
 
   async handleConnection(client: Socket) {
     const userId: string = client.handshake.headers['x-user-id'] as string;
+    console.log("userId", userId)
     if (!userId) {
       client.disconnect();
       return;
     }
 
+    console.log("1");
     await this.presenceService.setUserPresence(userId);
+    console.log("2");
     await this.connectionsService.addConnection(userId, client.id, this.gatewayNodeId);
+    console.log("3");
     this.userMQ.emit(USER_ONLINE_EVENT, userId);
+    console.log("4");
   }
 
   async handleDisconnect(client: Socket) {
