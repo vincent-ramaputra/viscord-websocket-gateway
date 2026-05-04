@@ -264,11 +264,17 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
     console.log("userId: ", userId)
 
     try {
+      console.log("Getting DM Channels")
       const dmChannelsResponse = await firstValueFrom(this.channelsService.getDmChannels({ userId }));
+      console.log("Getting User Data")
       const userResponse = await firstValueFrom(this.usersService.getCurrentUser({ userId }));
+      console.log("Getting Relationships")
       const relationshipResponse: Result<RelationshipResponseDTO[]> = await firstValueFrom(this.relationshipsService.getRelationships({ userId }));
+      console.log("Getting Online Users")
       const visibleUsersResponse: Result<string[] | undefined> = await firstValueFrom(this.relationshipsService.getVisibleUsers({ userId }));
+      console.log("Getting Guilds")
       const guildsResponse: Result<GuildResponseDTO[]> = await firstValueFrom(this.guildsService.findAll({ userId }));
+      console.log("Fetch complete")
 
       let userIds = visibleUsersResponse.data ?? [];
       let userPresence: string[] = [];
