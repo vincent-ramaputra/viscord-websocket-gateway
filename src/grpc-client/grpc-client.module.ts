@@ -27,7 +27,6 @@ import { join } from "path";
                     imports: [ConfigModule],
                     inject: [ConfigService],
                     useFactory: (configService: ConfigService) => {
-                        console.log(`${configService.get('USER_SERVICE_HOST')}:${configService.get('USER_SERVICE_GRPC_PORT')}`);
                         return {
                             transport: Transport.GRPC,
                             options: {

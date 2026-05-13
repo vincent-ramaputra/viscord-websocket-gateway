@@ -24,6 +24,8 @@ import { PresenceModule } from './presence/presence.module';
 import { ConnectionsModule } from './connections/connections.module';
 import { SubscriptionsService } from './subscriptions/subscriptions.service';
 import { SubscriptionsModule } from './subscriptions/subscriptions.module';
+import { LoggerModule } from 'nestjs-pino';
+import { IncomingMessage, ServerResponse } from 'http';
 
 export const mapper = createMapper({
   strategyInitializer: classes(),
@@ -33,6 +35,28 @@ export const mapper = createMapper({
   imports: [ConfigModule.forRoot({
     isGlobal: true,
     envFilePath: '.env'
+  }), LoggerModule.forRoot({
+    pinoHttp: {
+      level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+      redact: [
+        'req.headers.cookie',
+        'req.headers.authorization',
+        'res.headers["set-cookie"]',
+      ],
+      serializers: {
+        req(req: IncomingMessage & { id: number }) {
+          return {
+            id: req.id,
+            method: req.method,
+            url: req.url,
+            'x-forwarded-uri': req.headers['x-forwarded-uri']
+          };
+        },
+        res(res: ServerResponse) {
+          return { statusCode: res.statusCode };
+        }
+      }
+    }
   }), WsModule, RelationshipsModule, MessagesModule, UserProfilesModule, GuildsModule, SfuModule, HttpModule, GrpcClientModule, RedisModule, PresenceModule, ConnectionsModule, SubscriptionsModule],
   controllers: [AppController, UserProfilesController, GuildsController, ChannelsController],
   providers: [AppService, SfuService, SubscriptionsService]

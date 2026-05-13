@@ -1,7 +1,7 @@
 import { ConnectedSocket, MessageBody, OnGatewayConnection, OnGatewayDisconnect, OnGatewayInit, SubscribeMessage, WebSocketGateway, WebSocketServer } from '@nestjs/websockets';
 import { Server, Socket } from "socket.io";
 import { RelationshipResponseDTO } from "src/relationships/dto/relationship-response.dto";
-import { Body, Controller, forwardRef, HttpStatus, Inject, Injectable, OnModuleInit, ValidationPipe } from "@nestjs/common";
+import { Body, Controller, forwardRef, HttpStatus, Inject, Injectable, Logger, OnModuleInit, ValidationPipe } from "@nestjs/common";
 import { Payload } from "../interfaces/payload.dto";
 import { ClientGrpc, ClientProxy, ClientProxyFactory, EventPattern, MessagePattern, Transport } from "@nestjs/microservices";
 import { CLIENT_READY_EVENT, FRIEND_ADDED_EVENT, FRIEND_REMOVED_EVENT, FRIEND_REQUEST_RECEIVED_EVENT, GET_DM_CHANNELS_EVENT, GET_GUILDS_EVENT, GET_RELATIONSHIPS_EVENT, MESSAGE_RECEIVED_EVENT, USER_PRESENCE_UPDATE_EVENT, USER_QUEUE, USER_PROFILE_UPDATE_EVENT, USER_TYPING_EVENT, VOICE_RING_EVENT, CHANNEL_QUEUE, VOICE_UPDATE_EVENT, GET_VOICE_STATES_EVENT, GET_VOICE_RINGS_EVENT, VOICE_RING_DISMISS_EVENT, VOICE_MUTE, GUILD_UPDATE_EVENT, SUBSCRIBE_EVENTS, USER_ONLINE_EVENT, USER_OFFLINE_EVENT, GET_USERS_PRESENCE_EVENT } from "src/constants/events";
@@ -27,6 +27,7 @@ import { UserPresenceUpdateDTO } from "src/presence/dto/user-presence-update.dto
 @Injectable()
 @WebSocketGateway({ namespace: "/ws" })
 export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect, OnModuleInit {
+  private readonly logger = new Logger(WsGateway.name);
   private channelsService: ChannelsService;
   private relationshipsService: RelationshipsService;
   private usersService: UsersService;
@@ -80,7 +81,7 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
   }
 
   async handleDisconnect(client: Socket) {
-    console.log("client disconnection")
+    this.logger.log('client disconnection');
     const userId: string = client.handshake.headers['x-user-id'] as string;
 
     await this.connectionsService.removeConnection(userId, client.id);
@@ -165,11 +166,11 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
   async handleMessageReceived(payload: Payload<any>) {
     for (const userId of payload.recipients) {
       const socketIds = await this.connectionsService.getUserConnections(userId);
-      console.log('socketIds', socketIds);
+      this.logger.debug({ socketIds }, 'socketIds');
 
       for (const socketId of socketIds) {
         const nodeId = await this.connectionsService.getConnectionNode(socketId);
-        console.log('nodeId', nodeId, this.gatewayNodeId);
+        this.logger.debug({ nodeId, gatewayNodeId: this.gatewayNodeId }, 'nodeId');
 
         if (nodeId === this.gatewayNodeId) {
           this.server.to(socketId).emit(MESSAGE_RECEIVED_EVENT, payload.data);
@@ -182,10 +183,10 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
   }
 
   async handleUserProfileUpdate(payload: Payload<UserProfileResponseDTO>) {
-    console.log('user profile update', payload);
+    this.logger.debug({ payload }, 'user profile update');
     for (const target of payload.targetIds) {
       const subscribers = await this.subscriptionsService.getEventSubscribers(USER_PROFILE_UPDATE_EVENT, target);
-      console.log('subscribers', subscribers);
+      this.logger.debug({ subscribers }, 'subscribers');
       for (const socketId of subscribers) {
         const nodeId = await this.connectionsService.getConnectionNode(socketId);
 
@@ -259,22 +260,22 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
 
   @SubscribeMessage(CLIENT_READY_EVENT)
   async handleClientReady(@ConnectedSocket() client: Socket) {
-    console.log("Received client ready")
+    this.logger.log('received client ready');
     const userId = client.handshake.headers['x-user-id'] as string;
-    console.log("userId: ", userId)
+    this.logger.debug({ userId }, 'client ready userId');
 
     try {
-      console.log("Getting DM Channels")
+      this.logger.debug('getting DM channels');
       const dmChannelsResponse = await firstValueFrom(this.channelsService.getDmChannels({ userId }));
-      console.log("Getting User Data")
+      this.logger.debug('getting user data');
       const userResponse = await firstValueFrom(this.usersService.getCurrentUser({ userId }));
-      console.log("Getting Relationships")
+      this.logger.debug('getting relationships');
       const relationshipResponse: Result<RelationshipResponseDTO[]> = await firstValueFrom(this.relationshipsService.getRelationships({ userId }));
-      console.log("Getting Online Users")
+      this.logger.debug('getting online users');
       const visibleUsersResponse: Result<string[] | undefined> = await firstValueFrom(this.relationshipsService.getVisibleUsers({ userId }));
-      console.log("Getting Guilds")
+      this.logger.debug('getting guilds');
       const guildsResponse: Result<GuildResponseDTO[]> = await firstValueFrom(this.guildsService.findAll({ userId }));
-      console.log("Fetch complete")
+      this.logger.debug('fetch complete');
 
       let userIds = visibleUsersResponse.data ?? [];
       let userPresence: string[] = [];
@@ -308,7 +309,7 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
 
       return { user: userResponse.data, dmChannels: dmChannelsResponse.data, relationships, presences: userPresence, guilds };
     } catch (error) {
-      console.log('failed grpc request', error)
+      this.logger.error({ error }, 'failed grpc request');
     }
   }
 
@@ -422,7 +423,7 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
 
 
   afterInit(server: Server) {
-    console.log("websocket gateway initialized at port", process.env.WS_PORT);
+    this.logger.log(`websocket gateway initialized at port ${process.env.WS_PORT}`);
   }
 
   onModuleInit() {

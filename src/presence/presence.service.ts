@@ -1,9 +1,11 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { USER_PRESENCE_TTL } from "src/constants/redis-configs";
 import { RedisService } from "src/redis/redis.service";
 
 @Injectable()
 export class PresenceService {
+    private readonly logger = new Logger(PresenceService.name);
+
     constructor(
         private readonly redisService: RedisService
     ) { }
@@ -15,7 +17,7 @@ export class PresenceService {
             // await client.setEx(key, USER_PRESENCE_TTL, userId);
             await client.set(key, userId);
         } catch (error) {
-            console.error(error);
+            this.logger.error(error);
             return false;
         }
 
@@ -28,7 +30,7 @@ export class PresenceService {
             const key = this.getUserPresenceKey(userId);
             client.del(key);
         } catch (error) {
-            console.error(error);
+            this.logger.error(error);
             return false;
         }
 
@@ -43,7 +45,7 @@ export class PresenceService {
 
             return presences.filter(p => typeof(p) === 'string');
         } catch (error) {
-            console.error(error);
+            this.logger.error(error);
         }
 
         return [];

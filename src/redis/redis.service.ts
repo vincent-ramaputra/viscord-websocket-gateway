@@ -1,8 +1,9 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { createClient, RedisClientType } from "redis";
 
 @Injectable()
 export class RedisService {
+  private readonly logger = new Logger(RedisService.name);
   private client: RedisClientType;
 
   async getClient(): Promise<RedisClientType> {
@@ -11,7 +12,7 @@ export class RedisService {
         url: `redis://${process.env.REDIS_HOST}:${process.env.REDIS_PORT}`,
       });
 
-      this.client.on('error', (err) => console.error('Redis Client Error', err));
+      this.client.on('error', (err) => this.logger.error(err, 'Redis Client Error'));
       await this.client.connect();
     }
 
