@@ -40,7 +40,7 @@ jobs:
           sudo mv kustomize /usr/local/bin/
       - name: Update image tag
         run: |
-          cd infra/k8s/apps/ws-gateway/overlays/dev
+          cd infra/k8s/services/ws-gateway/overlays/dev
           IMAGE_TAG=${{ steps.meta.outputs.version }}
           kustomize edit set image vincentramaputra/viscord-ws-gateway:$IMAGE_TAG
       - name: Commit and push to infra repo
