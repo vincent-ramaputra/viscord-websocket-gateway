@@ -6,7 +6,12 @@ import { Logger } from 'nestjs-pino';
 import pino from 'pino';
 import { LoggerService } from '@nestjs/common';
 
-const _pino = pino({ level: process.env.NODE_ENV === 'production' ? 'info' : 'debug' });
+const _pino = pino({
+  level: process.env.NODE_ENV === 'production' ? 'info' : 'debug',
+  formatters: {
+    level: (label: string) => ({ level: label })
+  }
+});
 const bootstrapLogger: LoggerService = {
   log: (msg: string, ctx?: string) => _pino.info({ context: ctx }, msg),
   error: (msg: string, trace?: string, ctx?: string) => _pino.error({ context: ctx, trace }, msg),
@@ -33,7 +38,7 @@ async function bootstrap() {
       }
     }
   });
-  
+
   await app.listen(process.env.WS_PORT);
   await app.startAllMicroservices();
 }
