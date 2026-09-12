@@ -20,9 +20,6 @@
     "test:e2e": "jest --config ./test/jest-e2e.json"
   },
   "dependencies": {
-    "@automapper/classes": "^8.8.1",
-    "@automapper/core": "^8.8.1",
-    "@automapper/nestjs": "^8.8.1",
     "@grpc/grpc-js": "^1.13.4",
     "@grpc/proto-loader": "^0.8.0",
     "@nestjs/axios": "^4.0.0",
