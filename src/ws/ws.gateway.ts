@@ -260,23 +260,22 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
 
   @SubscribeMessage(CLIENT_READY_EVENT)
   async handleClientReady(@ConnectedSocket() client: Socket) {
-    this.logger.log('received client ready');
     const userId = client.handshake.headers['x-user-id'] as string;
-    this.logger.debug({ userId }, 'client ready userId');
 
     try {
-      this.logger.debug('getting DM channels');
-      const dmChannelsResponse = await firstValueFrom(this.channelsService.getDmChannels({ userId }));
-      this.logger.debug('getting user data');
-      const userResponse = await firstValueFrom(this.usersService.getCurrentUser({ userId }));
-      this.logger.debug('getting relationships');
-      const relationshipResponse: Result<RelationshipResponseDTO[]> = await firstValueFrom(this.relationshipsService.getRelationships({ userId }));
-      this.logger.debug('getting online users');
-      const visibleUsersResponse: Result<string[] | undefined> = await firstValueFrom(this.relationshipsService.getVisibleUsers({ userId }));
-      this.logger.debug('getting guilds');
-      const guildsResponse: Result<GuildResponseDTO[]> = await firstValueFrom(this.guildsService.findAll({ userId }));
-      this.logger.debug('fetch complete');
-
+      const [
+        dmChannelsResponse,
+        userResponse,
+        relationshipResponse,
+        visibleUsersResponse,
+        guildsResponse
+      ] = await Promise.all([
+        firstValueFrom(this.channelsService.getDmChannels({ userId })),
+        firstValueFrom(this.usersService.getCurrentUser({ userId })),
+        firstValueFrom(this.relationshipsService.getRelationships({ userId })),
+        firstValueFrom(this.relationshipsService.getVisibleUsers({ userId })),
+        firstValueFrom(this.guildsService.findAll({ userId }))
+      ]);
       let userIds = visibleUsersResponse.data ?? [];
       let userPresence: string[] = [];
 
@@ -417,8 +416,8 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
 
   @SubscribeMessage(GET_USERS_PRESENCE_EVENT)
   async getUsersPresence(@ConnectedSocket() client: Socket, @Body() userIds: string[]) {
-      const onlineUserIds = await this.presenceService.getUserPresence(userIds);
-      return onlineUserIds;
+    const onlineUserIds = await this.presenceService.getUserPresence(userIds);
+    return onlineUserIds;
   }
 
 
