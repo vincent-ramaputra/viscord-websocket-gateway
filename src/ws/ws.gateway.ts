@@ -4,7 +4,7 @@ import { RelationshipResponseDTO } from "src/relationships/dto/relationship-resp
 import { Body, Controller, forwardRef, HttpStatus, Inject, Injectable, Logger, OnModuleInit, ValidationPipe } from "@nestjs/common";
 import { Payload } from "../interfaces/payload.dto";
 import { ClientGrpc, ClientProxy, ClientProxyFactory, EventPattern, MessagePattern, Transport } from "@nestjs/microservices";
-import { CLIENT_READY_EVENT, FRIEND_ADDED_EVENT, FRIEND_REMOVED_EVENT, FRIEND_REQUEST_RECEIVED_EVENT, GET_DM_CHANNELS_EVENT, GET_GUILDS_EVENT, GET_RELATIONSHIPS_EVENT, MESSAGE_RECEIVED_EVENT, USER_PRESENCE_UPDATE_EVENT, USER_QUEUE, USER_PROFILE_UPDATE_EVENT, USER_TYPING_EVENT, VOICE_RING_EVENT, CHANNEL_QUEUE, VOICE_UPDATE_EVENT, GET_VOICE_STATES_EVENT, GET_VOICE_RINGS_EVENT, VOICE_RING_DISMISS_EVENT, VOICE_MUTE, GUILD_UPDATE_EVENT, SUBSCRIBE_EVENTS, USER_ONLINE_EVENT, USER_OFFLINE_EVENT, GET_USERS_PRESENCE_EVENT } from "src/constants/events";
+import { CLIENT_READY_EVENT, FRIEND_ADDED_EVENT, FRIEND_REMOVED_EVENT, FRIEND_REQUEST_SENT_EVENT, GET_DM_CHANNELS_EVENT, GET_GUILDS_EVENT, GET_RELATIONSHIPS_EVENT, MESSAGE_RECEIVED_EVENT, USER_PRESENCE_UPDATE_EVENT, USER_QUEUE, USER_PROFILE_UPDATE_EVENT, USER_TYPING_EVENT, VOICE_RING_EVENT, CHANNEL_QUEUE, VOICE_UPDATE_EVENT, GET_VOICE_STATES_EVENT, GET_VOICE_RINGS_EVENT, VOICE_RING_DISMISS_EVENT, VOICE_MUTE, GUILD_UPDATE_EVENT, SUBSCRIBE_EVENTS, USER_ONLINE_EVENT, USER_OFFLINE_EVENT, GET_USERS_PRESENCE_EVENT } from "src/constants/events";
 import { UserStatusUpdateDTO } from "src/user-profiles/dto/user-status-update.dto";
 import { UserTypingDTO } from "src/guilds/dto/user-typing.dto";
 import { VoiceEventDTO } from "src/channels/dto/voice-event.dto";
@@ -97,7 +97,7 @@ export class WsGateway implements OnGatewayInit, OnGatewayConnection, OnGatewayD
         const nodeId = await this.connectionsService.getConnectionNode(socketId);
 
         if (nodeId === this.gatewayNodeId) {
-          this.server.to(socketId).emit(FRIEND_REQUEST_RECEIVED_EVENT, dto.data);
+          this.server.to(socketId).emit(FRIEND_REQUEST_SENT_EVENT, dto.data);
         }
         else {
           //publish to that node's redis channel

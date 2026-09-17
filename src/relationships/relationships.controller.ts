@@ -1,6 +1,6 @@
 import { Body, Controller, Get, Inject, Logger, ValidationPipe } from '@nestjs/common';
 import { EventPattern, MessagePattern } from "@nestjs/microservices";
-import { FRIEND_ADDED_EVENT, FRIEND_REMOVED_EVENT, FRIEND_REQUEST_RECEIVED_EVENT, USER_PRESENCE_UPDATE_EVENT, USER_ONLINE_EVENT } from "src/constants/events";
+import { FRIEND_ADDED_EVENT, FRIEND_REMOVED_EVENT, FRIEND_REQUEST_SENT_EVENT, USER_PRESENCE_UPDATE_EVENT, USER_ONLINE_EVENT } from "src/constants/events";
 import { RelationshipResponseDTO } from "./dto/relationship-response.dto";
 import { Payload } from "src/interfaces/payload.dto";
 import { WsGateway } from "src/ws/ws.gateway";
@@ -14,7 +14,7 @@ export class RelationshipsController {
     ) {
     }
 
-    @MessagePattern(FRIEND_REQUEST_RECEIVED_EVENT)
+    @MessagePattern(FRIEND_REQUEST_SENT_EVENT)
     async handleFriendRequestReceived(@Body(new ValidationPipe({ transform: true })) dto: Payload<RelationshipResponseDTO>) {
         this.logger.log({ dto }, 'received friend request');
         this.gateway.handleFriendReceived(dto);
